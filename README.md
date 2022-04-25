@@ -3,6 +3,9 @@
 
 Telegram bot to throw dices.
 
+[t.me/some_dice_bot](http://t.me/some_dice_bot)
+
+
 Send a message with the way Dungeons & Dragons describes the dice throws and you get the result.
 
     1d20
