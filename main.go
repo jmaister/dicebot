@@ -1,8 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
 	"log"
-	"math/rand"
+	"math/big"
 	"os"
 	"regexp"
 	"strconv"
@@ -35,29 +36,9 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			response := ""
-			dices := parseDiceTrows(update.Message.Text)
-			for _, d := range dices {
-				line := ""
-				if d.Ok {
-					line = strconv.Itoa(d.Times) + "d" + strconv.Itoa(d.Max) + " 🎲 "
-					for i := 0; i < d.Times; i++ {
-						line = line + strconv.Itoa(getRandom(d.Max)) + " "
-					}
-				} else {
-					line = d.Msg
-				}
-				response = response + line + "\n"
-			}
-
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
-			msg.ReplyToMessageID = update.Message.MessageID
-
-			bot.Send(msg)
-
+		if update.Message != nil {
+			go processMessage(bot, update)
+			// } else if update.Message.Command() != "" {
 		}
 	}
 }
@@ -67,6 +48,31 @@ type DiceThrow struct {
 	Max   int
 	Msg   string
 	Ok    bool
+}
+
+func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
+	log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
+	response := ""
+	dices := parseDiceTrows(update.Message.Text)
+	for _, d := range dices {
+		line := ""
+		if d.Ok {
+			line = strconv.Itoa(d.Times) + "d" + strconv.Itoa(d.Max) + " 🎲 "
+			for i := 0; i < d.Times; i++ {
+				line = line + strconv.Itoa(getRandom(d.Max)) + " "
+			}
+		} else {
+			line = d.Msg
+		}
+		response = response + line + "\n"
+	}
+
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
+	msg.ReplyToMessageID = update.Message.MessageID
+
+	bot.Send(msg)
+
 }
 
 func parseDiceTrows(message string) []DiceThrow {
@@ -117,5 +123,10 @@ func parseDiceTrows(message string) []DiceThrow {
 }
 
 func getRandom(max int) int {
-	return rand.Intn(max) + 1
+	i64 := int64(max)
+	v, e := rand.Int(rand.Reader, big.NewInt(i64))
+	if e != nil {
+		panic("Error on random generator.")
+	}
+	return int(v.Int64() + 1)
 }
