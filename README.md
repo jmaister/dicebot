@@ -16,4 +16,4 @@ docker build -t dicebot .
 
 # Run docker
 
-docker run -it dicebot
+make docker-run DICEBOT_TOKEN=<telegram_token>

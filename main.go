@@ -14,6 +14,11 @@ import (
 func main() {
 	// Telegram token
 	token := os.Getenv("DICEBOT_TOKEN")
+	if token == "" {
+		panic("DICEBOT_TOKEN must be set.")
+	}
+
+	log.Println("Starting with token " + token[0:3] + "..." + token[len(token)-3:])
 
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
