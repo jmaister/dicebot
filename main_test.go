@@ -40,7 +40,7 @@ func Test_parseDiceTrows(t *testing.T) {
 			name: "invalid aaa",
 			args: args{dice: "aaa"},
 			want: []DiceThrow{
-				{Msg: "'aaa' is not valid.", Ok: false},
+				{Msg: HelpStr, Ok: false},
 			},
 		}}
 	for _, tt := range tests {

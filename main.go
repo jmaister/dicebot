@@ -12,6 +12,23 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const HelpStr = "I can throw messages if you write <number>d<max> i.e. 1d20 like in Dungeons And Dragons.\n\n" +
+	"/show Show common dices\n" +
+	"/close Close buttons panel"
+
+var diceKeyboard = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("1d20"),
+		tgbotapi.NewKeyboardButton("1d12"),
+		tgbotapi.NewKeyboardButton("1d10"),
+	),
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("1d8"),
+		tgbotapi.NewKeyboardButton("1d6"),
+		tgbotapi.NewKeyboardButton("1d4"),
+	),
+)
+
 func main() {
 	// Telegram token
 	token := os.Getenv("DICEBOT_TOKEN")
@@ -36,10 +53,25 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message != nil {
+		if update.Message.Command() != "" {
+			command := update.Message.Command()
+			if command == "show" {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Showing buttons.")
+				msg.ReplyMarkup = diceKeyboard
+				bot.Send(msg)
+			} else if command == "close" {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Closing buttons.")
+				msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+				bot.Send(msg)
+			} else {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, HelpStr)
+				msg.ReplyMarkup = diceKeyboard
+				bot.Send(msg)
+			}
+		} else if update.Message.Text != "" {
 			go processMessage(bot, update)
-			// } else if update.Message.Command() != "" {
 		}
+
 	}
 }
 
@@ -80,14 +112,14 @@ func parseDiceTrows(message string) []DiceThrow {
 
 	r, err := regexp.Compile("(\\d+)d(\\d+)")
 	if err != nil {
-		panic("Error on main regex")
+		panic("Error on parseDiceTrows regex")
 	}
 	message = strings.ToLower(message)
 	matches := r.FindAllStringSubmatch(message, -1)
 
 	if len(matches) == 0 {
 		diceThrows = append(diceThrows, DiceThrow{
-			Msg: "'" + message + "' is not valid.",
+			Msg: HelpStr,
 			Ok:  false,
 		})
 		return diceThrows
