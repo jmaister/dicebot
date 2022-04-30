@@ -126,27 +126,32 @@ func parseDiceTrows(message string) []DiceThrow {
 	}
 
 	for _, m := range matches {
-		tms, err := strconv.Atoi(m[1])
+		times, err := strconv.Atoi(m[1])
 		if err != nil {
 			log.Println("err 1", err)
 			diceThrows = append(diceThrows, DiceThrow{
-				Msg: strings.Join(m, "") + " is not valid.",
+				Msg: m[0] + " is not valid.",
 			})
 			continue
 		}
-		mx, err := strconv.Atoi(m[2])
-		if err != nil {
+		if times < 1 {
+			times = 1
+		} else if times > 100 {
+			times = 100
+		}
+		maxNumber, err := strconv.Atoi(m[2])
+		if err != nil || maxNumber < 1 {
 			log.Println("err 2", err)
 			diceThrows = append(diceThrows, DiceThrow{
-				Msg: strings.Join(m, "") + " is not valid.",
+				Msg: m[0] + " is not valid.",
 				Ok:  false,
 			})
 			continue
 		}
 
 		diceThrows = append(diceThrows, DiceThrow{
-			Times: tms,
-			Max:   mx,
+			Times: times,
+			Max:   maxNumber,
 			Ok:    true,
 		})
 	}

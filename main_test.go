@@ -37,6 +37,27 @@ func Test_parseDiceTrows(t *testing.T) {
 			},
 		},
 		{
+			name: "fix if number of times is too high",
+			args: args{dice: "500d20"},
+			want: []DiceThrow{
+				{Times: 100, Max: 20, Ok: true},
+			},
+		},
+		{
+			name: "fix if number of times is too low",
+			args: args{dice: "0d20"},
+			want: []DiceThrow{
+				{Times: 1, Max: 20, Ok: true},
+			},
+		},
+		{
+			name: "error if dice number is too low",
+			args: args{dice: "1d0"},
+			want: []DiceThrow{
+				{Msg: "1d0 is not valid.", Ok: false},
+			},
+		},
+		{
 			name: "invalid aaa",
 			args: args{dice: "aaa"},
 			want: []DiceThrow{
