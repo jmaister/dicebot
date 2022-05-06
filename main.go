@@ -12,7 +12,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const HelpStr = "I can throw messages if you write <number>d<max> i.e. 1d20 like in Dungeons And Dragons.\n\n" +
+const HelpStr = "Welcome to Dice Bot!!\n\n" +
+	"I can throw messages if you write <number>d<max> i.e. 1d20 like in Dungeons And Dragons.\n\n" +
 	"/show Show common dices\n" +
 	"/close Close buttons panel"
 
@@ -42,6 +43,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+	bot.Self.SupportsInlineQueries = true
 
 	bot.Debug = true
 
@@ -53,7 +55,7 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message.Command() != "" {
+		if update.Message != nil && update.Message.Command() != "" {
 			command := update.Message.Command()
 			if command == "show" {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Showing buttons.")
@@ -68,6 +70,11 @@ func main() {
 				msg.ReplyMarkup = diceKeyboard
 				bot.Send(msg)
 			}
+		} else if update.MyChatMember != nil {
+			msg := tgbotapi.NewMessage(update.MyChatMember.Chat.ID, HelpStr)
+			msg.ReplyMarkup = diceKeyboard
+			bot.Send(msg)
+
 		} else if update.Message.Text != "" {
 			go processMessage(bot, update)
 		}
